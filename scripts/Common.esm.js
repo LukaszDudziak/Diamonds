@@ -7,11 +7,12 @@ export const VISIBLE_SCREEN = true;
 
 export class Common {
   constructor(elementId) {
-    this.elementId = this.bindToElement(elementId);
+    this.element = this.bindToElement(elementId);
   }
 
   //wyszukiwanie elementów DOM po id
   bindToElement(elementToFindById) {
+    //przypisanie znalezionego obiektu do stałej element
     const element = document.getElementById(elementToFindById);
 
     if (!element) {

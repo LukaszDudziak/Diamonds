@@ -1,4 +1,5 @@
 import { Common, HIDDEN_SCREEN, VISIBLE_SCREEN } from "./Common.esm.js";
+import { levelSelect } from "./LevelSelect.esm.js";
 
 //properta do skalowania
 const SCALE_PROPERTY = "--scale-value";
@@ -13,6 +14,7 @@ class MainMenu extends Common {
     //wywołanie konstruktora klasy bazowej
     super(START_SCREEN_ID);
     this.bindToGameElements();
+    //ustawienie skalowania obszaru gry zależnie od wielkości okna
     this.resizeGameWindow();
     window.addEventListener("resize", this.resizeGameWindow);
   }
@@ -22,13 +24,18 @@ class MainMenu extends Common {
     const gameSettingsButton = this.bindToElement(
       START_SCREEN_SETTINGS_BUTTON_ID
     );
-    //listenery przycisków
-    gameStartButton.addEventListener("click", this.showLevelScreen);
-    gameSettingsButton.addEventListener("click", this.showSettingsScreen);
+
+    //listenery przycisków, użyte zamknięcie w strzałkowej po to, żeby mieć dostęp do wyższego scope
+    gameStartButton.addEventListener("click", () => this.showLevelScreen());
+    gameSettingsButton.addEventListener("click", () =>
+      this.showSettingsScreen()
+    );
   }
   //implementacja przycisków
   showLevelScreen() {
-    console.log("Wybór poziomu");
+    //zmiana widoczności obecnego elementu (przekazanego w super konstruktora)
+    this.changeVisibilityScreen(this.element, HIDDEN_SCREEN);
+    this.changeVisibilityScreen(levelSelect.element, VISIBLE_SCREEN);
   }
 
   showSettingsScreen() {
