@@ -1,5 +1,7 @@
 import { Common, HIDDEN_SCREEN, VISIBLE_SCREEN } from "./Common.esm.js";
 import { canvas } from "./Canvas.esm.js";
+import { DATALOADED_EVENT_NAME, loader } from "./Loader.esm.js";
+
 //tablica przechowująca wszystkie poziomy
 const gameLevels = [
   {
@@ -39,7 +41,18 @@ class LevelSelect extends Common {
 
   buttonOnClickHandler(event) {
     this.changeVisibilityScreen(this.element, HIDDEN_SCREEN);
+    //odpalam canvasa
     this.changeVisibilityScreen(canvas.element, VISIBLE_SCREEN);
+    //przekazuje do załadowania wartość buttona, oznaczającą który lvl odpalam
+    this.loadLevel(event.currentTarget.value);
+  }
+
+  loadLevel(level) {
+    const background = loader.loadImage("assets/images/levelbackground.png");
+    //nasłuch na wydarzenie kończące ładowanie
+    window.addEventListener(DATALOADED_EVENT_NAME, () => {
+      console.log("załadowane wszystkie media");
+    });
   }
 }
 
