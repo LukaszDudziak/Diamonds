@@ -1,5 +1,6 @@
 import { Common, HIDDEN_SCREEN, VISIBLE_SCREEN } from "./Common.esm.js";
 import { levelSelect } from "./LevelSelect.esm.js";
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./Canvas.esm.js";
 
 //properta do skalowania
 const SCALE_PROPERTY = "--scale-value";
@@ -46,7 +47,7 @@ class MainMenu extends Common {
   resizeGameWindow() {
     //   utworzenie stałych z destrukturyzacji obiektu, tj. wyciągnięcie z window.innerWidth/window.innerHeigth zmiennych bezpośrednio do innerWidth (pod nazwą width) i innerHeigth(pod nazwą height)
     const { innerWidth: width, innerHeight: height } = window;
-    const scale = Math.min(width / 640, height / 480);
+    const scale = Math.min(width / CANVAS_WIDTH, height / CANVAS_HEIGHT);
 
     //ustawienie aktualnej skali do wartości skali
     document.documentElement.style.setProperty(SCALE_PROPERTY, scale);
