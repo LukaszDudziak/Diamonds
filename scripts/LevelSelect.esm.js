@@ -2,6 +2,7 @@ import { Common, HIDDEN_SCREEN, VISIBLE_SCREEN } from "./Common.esm.js";
 import { canvas } from "./Canvas.esm.js";
 import { DATALOADED_EVENT_NAME, loader } from "./Loader.esm.js";
 import { game } from "./Game.esm.js";
+import { media } from "./Media.esm.js";
 
 //tablica przechowująca wszystkie poziomy
 const gameLevels = [
@@ -49,7 +50,10 @@ class LevelSelect extends Common {
   }
 
   loadLevel(level) {
-    const background = loader.loadImage("assets/images/levelbackground.png");
+    //ładowanie mediów poprzez utworzony obiekt, obrazu tła gry
+    media.backgroundImage = loader.loadImage(
+      "assets/images/levelbackground.png"
+    );
     //nasłuch na wydarzenie kończące ładowanie
     window.addEventListener(DATALOADED_EVENT_NAME, () => {
       game.playLevel(level);
