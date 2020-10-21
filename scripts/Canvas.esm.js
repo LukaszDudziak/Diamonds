@@ -1,6 +1,5 @@
 import { Common } from "./Common.esm.js";
 import { media } from "./Media.esm.js";
-import { game } from "./Game.esm.js";
 //stałe wymiarów canvasa
 export const CANVAS_WIDTH = 640;
 export const CANVAS_HEIGHT = 480;

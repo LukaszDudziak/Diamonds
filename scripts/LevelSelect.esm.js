@@ -50,7 +50,8 @@ class LevelSelect extends Common {
   }
 
   loadLevel(level) {
-    //ładowanie mediów poprzez utworzony obiekt, obrazu tła gry
+    //ładowanie mediów poprzez utworzony obiekt, obrazu tła gry, sprajta z diamentami
+    media.diamondsSprite = loader.loadImage('assets/images/diamonds-transparent.png')
     media.backgroundImage = loader.loadImage(
       "assets/images/levelbackground.png"
     );
