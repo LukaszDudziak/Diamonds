@@ -95,14 +95,39 @@ class Game extends Common {
     mouseController.clicked = false;
   }
 
+  swapDiamonds(){
+    const firstDiamond = mouseController.firstClick.y * DIAMONDS_ARRAY_WIDTH
+  }
+
+  //wymiana płytek
   swap(firstDiamond, secondDiamond){
     //wymiana wartości, do x przypisany będzie y, do y będzie przypisany x
     // [ x, y ] = [ y, x];
     [
-      
+      firstDiamond.kind,
+      firstDiamond.alpha,
+      firstDiamond.match,
+      firstDiamond.x,
+      firstDiamond.y,
+      secondDiamond.kind,
+      secondDiamond.alpha,
+      secondDiamond.match,
+      secondDiamond.x,
+      secondDiamond.y
     ] = [
-
-    ]
+      secondDiamond.kind,
+      secondDiamond.alpha,
+      secondDiamond.match,
+      secondDiamond.x,
+      secondDiamond.y,
+      firstDiamond.kind,
+      firstDiamond.alpha,
+      firstDiamond.match,
+      firstDiamond.x,
+      firstDiamond.y,
+    ];
+    //blokowanie ruchu w trakcie ruchu
+    this.gameState.setIsMoving(true);
 
   }
 }
