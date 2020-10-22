@@ -2,12 +2,12 @@ import { Common, HIDDEN_SCREEN, VISIBLE_SCREEN } from "./Common.esm.js";
 import { levelSelect } from "./LevelSelect.esm.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./Canvas.esm.js";
 
-//properta do skalowania
-const SCALE_PROPERTY = "--scale-value";
 //stałe zawierające elementy DOM
 const START_SCREEN_ID = "js-start-screen";
 const START_SCREEN_GAME_BUTTON_ID = "js-start-game";
 const START_SCREEN_SETTINGS_BUTTON_ID = "js-settings-button";
+//properta do skalowania
+export const SCALE_PROPERTY = "--scale-value";
 
 //mainmenu rozszerza klasę common
 class MainMenu extends Common {
