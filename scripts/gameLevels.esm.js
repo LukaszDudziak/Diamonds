@@ -9,7 +9,7 @@ export const GAME_BOARD_Y_OFFSET = 20;
 export const gameLevels = [
   {
     level: 1,
-    numberOfMovements: 30,
+    numberOfMovements: 1,
     pointsToWin: 7000,
     //tworzenie planszy, kolejno z pozycją X, Y, nazwą rzędu, kolumny i rodzaju klocka jaki jest w tym miejscu, pierwszy rząd jest z empty
     board:[

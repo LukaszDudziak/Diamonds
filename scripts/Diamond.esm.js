@@ -3,7 +3,7 @@ import { Sprite } from "./Sprite.esm.js";
 
 //rozmiar na obrazku oryginalnym
 const DIAMOND_ORIGINAL_SIZE = 32;
-const NUMBER_OF_DIAMONDS_TYPES = 6;
+export const NUMBER_OF_DIAMONDS_TYPES = 6;
 //rozmiar którego będę chciał użyć w grze 
 export const DIAMOND_SIZE = 48;
 //ratio rozmiaru

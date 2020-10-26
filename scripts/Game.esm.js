@@ -1,17 +1,20 @@
 import { Common, VISIBLE_SCREEN } from "./Common.esm.js";
 import { DATALOADED_EVENT_NAME } from "./Loader.esm.js";
-import { gameLevels, GAME_BOARD_X_OFFSET, GAME_BOARD_Y_OFFSET } from "./gameLevels.esm.js";
+import { EMPTY_BLOCK, gameLevels, GAME_BOARD_X_OFFSET, GAME_BOARD_Y_OFFSET } from "./gameLevels.esm.js";
 import { canvas } from "./Canvas.esm.js";
 import { media } from "./Media.esm.js";
 import { GameState } from "./GameState.esm.js";
 import { mouseController } from "./MouseController.esm.js";
-import { DIAMOND_SIZE } from "./Diamond.esm.js";
+import { DIAMOND_SIZE, NUMBER_OF_DIAMONDS_TYPES } from "./Diamond.esm.js";
+import { resultScreen } from './ResultScreen.esm.js';
 
 
 //rozmiary tablicy
 const DIAMONDS_ARRAY_WIDTH = 8;
 const DIAMONDS_ARRAY_HEIGHT = DIAMONDS_ARRAY_WIDTH + 1; //z ukrytą pierwszą linią 
+const LAST_ELEMENT_DIAMONDS_ARRAY = DIAMONDS_ARRAY_WIDTH * DIAMONDS_ARRAY_HEIGHT - 1;
 const SWAPPING_SPEED = 8;
+const TRANSPARENCY_SPEED = 10;
 
 class Game extends Common {
   constructor() {
@@ -37,16 +40,25 @@ class Game extends Common {
     this.handleMouseState();
     //ogarnięcie klika
     this.handleMouseClick();
+    //odnajdywanie połączeń między płytkami
+    this.findMatches();
     //zamiana płytek
     this.moveDiamonds();
+//ukrywanie diamentów
+    this.hideAnimation();
+    //liczenie punktów
+    this.countScores();
     //reset flag isMoving i isSwapping
     this.revertSwap();
+//czyszczenie dopasowanych płytek
+    this.clearMatched();
     //rysuje background
     canvas.drawGameOnCanvas(this.gameState);
     //pobiera caly przygotowany game board zawierajacy juz obiekty Diamond i rysuje zgodnie z wytycznymi metody 
     this.gameState.getGameBoard().forEach(diamond => diamond.draw());
-
-    this.animationFrame = window.requestAnimationFrame(() => this.animate());
+    //sprawdzenie czy gra się zakończyła 
+    this.checkEndOfGame();
+    
   }
   handleMouseState(){
     //nadaje kolejny state wybranej płytce, pod warunkiem że nie jest w tym momencie "wymieniana" ani "poruszająca się"
@@ -99,6 +111,45 @@ class Game extends Common {
 
     mouseController.clicked = false;
   }
+
+  findMatches(){
+    //iteruje po całej tablicy, z której mam dostęp do pojedynczego diamonda, o danym indexie z całej tablicy
+    this.gameState.getGameBoard().forEach((diamond, index, diamonds) =>{
+      //pominięcie pierwszych 8 elementów, które są empty i ukryte (poprzez sprawdzenie czy właśnie nie czytam empty i czy index nie osiągnął ostatniego bloku (bo wtedy nie dopasuje skrajnych wartości))
+      if(diamond.kind === EMPTY_BLOCK || index === LAST_ELEMENT_DIAMONDS_ARRAY){
+        return;
+      }
+      //sprawdzenie czy rodzaj konkretnego diamonda pokrywa się z typem tych diamentów o indeksie +/- 1
+      if(
+        diamonds[index - 1].kind === diamond.kind
+        && diamonds[index + 1].kind === diamond.kind
+      ){
+        //sprawdzenie czy one są w ogóle w jednej linii (wierszu)
+        if(Math.floor((index - 1)/ DIAMONDS_ARRAY_WIDTH) === Math.floor((index + 1)/ DIAMONDS_ARRAY_WIDTH)){
+          //dodawanie wartości match na podstawie ilości połączeń
+          for(let i = -1; i <= 1; i++){
+            diamonds[index + i].match++;
+          }
+        }
+      }
+      //sprawdzenie dla pionowych wartości, czy index nie jest większy od DAW (te które mają index 0-7 są w linii ukrytych), czy nie jest ostatnim elementem, czy +/- ma ten sam kind co konkretny diament
+      if(
+         index >= DIAMONDS_ARRAY_WIDTH
+         && index < LAST_ELEMENT_DIAMONDS_ARRAY - DIAMONDS_ARRAY_WIDTH + 1
+         && diamonds[index - DIAMONDS_ARRAY_WIDTH].kind === diamond.kind
+         && diamonds[index + DIAMONDS_ARRAY_WIDTH].kind === diamond.kind
+        ){
+          //sprawdzenie, czy eleemnty są w jednej osi y (ze sprytnym wykorzystaniem modulo)
+          if ((index - DIAMONDS_ARRAY_WIDTH) % DIAMONDS_ARRAY_WIDTH === (index + DIAMONDS_ARRAY_WIDTH) % DIAMONDS_ARRAY_WIDTH){
+            //pamiętać, że lecę "do góry"
+            for(let i = -DIAMONDS_ARRAY_WIDTH; i <= DIAMONDS_ARRAY_WIDTH; i += DIAMONDS_ARRAY_WIDTH){
+              diamonds[index + i].match++;
+            }
+          }
+        }
+    });
+  }
+
 //wymiana płytek
   swapDiamonds(){
     //z racji tego, że nie mamy tablic dwuwymiarowych, to trzeba sobie radzić taką symulacją
@@ -134,13 +185,97 @@ class Game extends Common {
     });
   }
 
+  hideAnimation(){
+    if(this.gameState.getIsMoving()){
+      return;
+    }
+    this.gameState.getGameBoard().forEach(diamond =>{
+      //zmiana transparentności na ukrywanym 
+      if(diamond.match && diamond.alpha > 10){
+        diamond.alpha -= TRANSPARENCY_SPEED;
+        this.gameState.setIsMoving(true);
+      }
+    })
+  }
+
+  countScores(){
+    this.scores = 0;
+    //pobranie boarda i dodanie matchów z każdego diamonda
+    this.gameState.getGameBoard().forEach(diamond => this.scores += diamond.match);
+
+    if(!this.gameState.getIsMoving() && this.scores){
+      this.gameState.increasePlayerPoints(this.scores);
+    }
+  }
+
   revertSwap(){
     if(this.gameState.getIsSwapping() && !this.gameState.getIsMoving()){
-      // if(!this.scores){
-      //   this.swapDiamonds();
-      //   this.gameState.increasePlayerPoints()
-      // }
+      if(!this.scores){
+        this.swapDiamonds();
+        this.gameState.increasePlayerPoints()
+      }
       this.gameState.setIsSwapping(false);
+    }
+  }
+
+  clearMatched(){
+    //nie sprawdzaj dopasowań w momencie, gdy jakieś płytki się przemieszczają
+    if(this.gameState.getIsMoving()){
+      return;
+    }
+    //iteruje po tablicy od końca, po to, żeby diamenty ładnie spadały od góry na dół
+    this.gameState.getGameBoard().forEach((_, idx, diamonds) =>{
+      const index = diamonds.length - 1 - idx;
+      //przypisuje c i r żeby wiedzieć gdzie w ogóle jestem
+      const column = Math.floor(index / DIAMONDS_ARRAY_WIDTH);
+      const row = Math.floor(index % DIAMONDS_ARRAY_WIDTH);
+      //sprawdzam, czy któryś z diamentów z iterowanej tablicy ma dopasowania 
+      if (diamonds[index].match){
+        //obczajam po kolumnie jak będzie spadanko
+        for(let counter = column; counter >= 0; counter--){
+          //sprawdzenie, czy diament w konkretnym miejscu (nad ostatnim dopasowanym) nie ma dopasowania 
+          if(!diamonds[counter * DIAMONDS_ARRAY_WIDTH + row].match){
+            //jeśli znajduje sobie, to wymieniam niedopasowany na miejsce dopasowanego
+            this.swap(diamonds[counter * DIAMONDS_ARRAY_WIDTH + row], diamonds[index]);
+            break;
+          }
+        }
+      }
+    });
+    
+    //teraz lece sobie w poziomie
+    this.gameState.getGameBoard().forEach((diamond, index) =>{
+      //pobieram row danego obiektu 
+      const row = Math.floor(index % DIAMONDS_ARRAY_WIDTH) * DIAMOND_SIZE;
+      //sprawdzenie czy to nie jest aby pierwsza linia, która ma zostać niewidoczna i która się nie wlicza, więc od razu przypisuje mu empty blocka i zeruje matche, żeby nie dostawać punktów z nikąd
+      if(index < DIAMONDS_ARRAY_WIDTH){
+        diamond.kind = EMPTY_BLOCK;
+        diamond.match = 0;
+        //jeśli natomiast któryś jest dopasowany lub jest transparentny
+      } else if( diamond.match || diamond.kind === EMPTY_BLOCK){
+        //to losuje mu jakiś nowy rodzaj 
+        diamond.kind = Math.floor(Math.random() * NUMBER_OF_DIAMONDS_TYPES);
+        diamond.y = 0;
+        diamond.x = row;
+        diamond.match = 0;
+        diamond.alpha = 255;
+      }
+    })
+  }
+
+  checkEndOfGame(){
+    if(!this.gameState.getLeftMovement() && !this.gameState.getIsMoving() && !this.gameState.getIsSwapping()){
+      const isPlayerWinner = this.gameState.isPlayerWinner();
+
+      if(isPlayerWinner && gameLevels[this.gameState.level]){
+        console.log('kolejny lvl odblokowany')
+        //odblokowanie kolejnego levelu
+      }
+      console.log('jeżeli gracz ma więcej punktów to aktualizacja high scores');
+      resultScreen.viewResultScreen(isPlayerWinner,this.gameState.getPlayerPoints(), this.gameState.level);
+    } else{
+      //jeśli gra się nie zakończyła to rysuj se dalej
+      this.animationFrame = window.requestAnimationFrame(() => this.animate());
     }
   }
 
