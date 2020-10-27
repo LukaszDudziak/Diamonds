@@ -1,6 +1,10 @@
 import { Common, HIDDEN_SCREEN, VISIBLE_SCREEN } from './Common.esm.js';
 import { mainMenu } from './MainMenu.esm.js';
 import { canvas } from './Canvas.esm.js';
+import { userData } from './UserData.esm.js';
+import { levelSelect } from './LevelSelect.esm.js';
+import { GameState } from './GameState.esm.js';
+import { game } from './Game.esm.js'
 
 
 const RESULT_SCREEN_GAME_WIN_CLASS = 'end-screen--is-win';
@@ -18,7 +22,7 @@ class ResultScreen extends Common{
         super(RESULT_SCREEN_END_SCREEN_ID);
         this.bindToElements();
    }
-
+   //standardowe przypisanie do elementów dom
    bindToElements(){
        this.resultTextElement = this.bindToElement(RESULT_SCREEN_HEADER_ID);
        this.userPointsElement = this.bindToElement(RESULT_SCREEN_USER_POINTS_ID);
@@ -28,27 +32,34 @@ class ResultScreen extends Common{
        const restartButtonElement = this.bindToElement(RESULT_SCREEN_RESTART_LEVEL_BUTTON_ID)
 
        backButtonElement.addEventListener('click',() => this.backButtonClick())
-       restartButtonElement.addEventListener('click', () => console.log('klik'))
-
+       restartButtonElement.addEventListener('click', () => this.restartLevelClick())
    }
-
+   
+   //wyświetlenie screena
    viewResultScreen(isGameWin, playerPoints, level){
+       //zależnego od wygranej/przegranej
        if(isGameWin){
         this.element.classList.add(RESULT_SCREEN_GAME_WIN_CLASS);
        } else{
         this.element.classList.remove(RESULT_SCREEN_GAME_WIN_CLASS);
        }
-
+       //wyświetlonko
        this.changeVisibilityScreen(this.element, VISIBLE_SCREEN);
        this.resultTextElement.textContent = isGameWin ? 'WYGRAŁEŚ' : 'PRZEGRAŁEŚ';
        this.userPointsElement.textContent = String(playerPoints);
-       this.highScoresElement.textContent = 7000;
+       //wyciągnięcie z local storage hscore dla podanego lvl
+       this.highScoresElement.textContent = String(userData.getHighScores(level));
    }
 
    backButtonClick(){
        this.changeVisibilityScreen(canvas.element, HIDDEN_SCREEN);
        this.changeVisibilityScreen(this.element, HIDDEN_SCREEN);
        mainMenu.showLevelScreen();
+   }
+
+   restartLevelClick(){
+       this.changeVisibilityScreen(this.element, HIDDEN_SCREEN);
+       levelSelect.loadLevel(game.gameState.level);
    }
 }
 

@@ -7,6 +7,7 @@ import { GameState } from "./GameState.esm.js";
 import { mouseController } from "./MouseController.esm.js";
 import { DIAMOND_SIZE, NUMBER_OF_DIAMONDS_TYPES } from "./Diamond.esm.js";
 import { resultScreen } from './ResultScreen.esm.js';
+import { userData } from "./UserData.esm.js";
 
 
 //rozmiary tablicy
@@ -56,6 +57,8 @@ class Game extends Common {
     canvas.drawGameOnCanvas(this.gameState);
     //pobiera caly przygotowany game board zawierajacy juz obiekty Diamond i rysuje zgodnie z wytycznymi metody 
     this.gameState.getGameBoard().forEach(diamond => diamond.draw());
+    //fix na sytuację w której mimo wolnych ruchów, nie ma żadnego który umożliwi zdobycie punktów
+    this.checkPosibilityMovement();
     //sprawdzenie czy gra się zakończyła 
     this.checkEndOfGame();
     
@@ -262,17 +265,118 @@ class Game extends Common {
       }
     })
   }
+//
+  checkPosibilityMovement(){
+    if(this.gameState.getIsMoving()){
+      return true;
+    }
+
+    this.isPossibleToMove = this.gameState.getGameBoard().some((diamond, index, diamonds) =>{
+      if(diamond.kind === EMPTY_BLOCK){
+        return false;
+      }
+
+      //ruch w prawo => sprawdzenie w rzędzie, czyli czy jeśli przesunę konkretny diament w prawą, do czy kolejne diamenty w rzędzie od nowej pozycji utworzą mi matcha [x 0 x x] => [0 x x x] (-3 bo muszę sprawdzić w momencie gdy do skraju mam max 3 pozycje)
+      if(
+        index % DIAMONDS_ARRAY_WIDTH < DIAMONDS_ARRAY_WIDTH - 3
+        && diamond.kind === diamonds[index + 2].kind
+        && diamond.kind === diamonds[index + 3].kind 
+      ){
+        //jeśli tak, to jest możliwość ruchu
+        return true;
+      }
+
+      //ruch w prawo => sprawdzenie w środku kolumny, czyli, czy jeśli przesunę konkretny diament w prawą, to czy kolejne diamenty w kolumnie od nowej pozycji utworzą matcha [ 0 x 0]    [ 0 x 0]  (-1 bo skrajny będzie sprawdzany w kolumnie, więc pozycja w rzędzie zmieni się jedynie o 1 )
+      //                     [ x 0 0] >> [ 0 x 0]
+      //                     [ 0 x 0]    [ 0 x 0]
+      if(
+          index % DIAMONDS_ARRAY_WIDTH < DIAMONDS_ARRAY_WIDTH - 1
+          && Math.floor( index / DIAMONDS_ARRAY_WIDTH) > 1
+          && Math.floor( index / DIAMONDS_ARRAY_WIDTH) < DIAMONDS_ARRAY_HEIGHT - 1
+          && diamond.kind === diamond[index - DIAMONDS_ARRAY_WIDTH + 1].kind
+          && diamond.kind === diamond[index + DIAMONDS_ARRAY_WIDTH + 1].kind //do zgłoszenia na udemy!!! !!! !!!
+      ){
+        return true;
+      }
+
+      //ruch w prawo => czy jest na szczycie kolumny [ x 0 0]   [ 0 x 0]
+      //                                             [ 0 x 0] > [ 0 x 0]
+      //                                             [ 0 x 0]   [ 0 x 0]
+      if(
+        index % DIAMONDS_ARRAY_WIDTH < DIAMONDS_ARRAY_WIDTH - 1
+        && Math.floor(index / DIAMONDS_ARRAY_WIDTH) < DIAMONDS_ARRAY_HEIGHT - 2
+        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH + 1].kind
+        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH * 2 + 1].kind
+      ){
+        return true;
+      }
+
+      ///ruch w prawo => czy jest na dole kolumny    [ 0 x 0]   [ 0 x 0]
+      //                                             [ 0 x 0] > [ 0 x 0]
+      //                                             [ x 0 0]   [ 0 x 0]
+      if(
+        index % DIAMONDS_ARRAY_WIDTH < DIAMONDS_ARRAY_WIDTH - 1
+        && Math.floor(index / DIAMONDS_ARRAY_WIDTH) > 2
+        && diamond.kind === diamonds[index - DIAMONDS_ARRAY_WIDTH + 1].kind
+        && diamond.kind === diamonds[index - DIAMONDS_ARRAY_WIDTH * 2 + 1].kind
+      ){
+        return true;
+      }
+
+      //ruch w lewa => w rzedzie
+      if(
+        index % DIAMONDS_ARRAY_WIDTH > 2
+        && diamond.kind === diamonds[index - 2].kind
+        && diamond.kind === diamonds[index - 3].kind 
+      ){
+        //jeśli tak, to jest możliwość ruchu
+        return true;
+      }
+      //ruch w lewa => w srodku kolumny
+      if(
+        index % DIAMONDS_ARRAY_WIDTH
+        && Math.floor( index / DIAMONDS_ARRAY_WIDTH) > 1
+        && Math.floor( index / DIAMONDS_ARRAY_WIDTH) < DIAMONDS_ARRAY_HEIGHT - 1
+        && diamond.kind === diamond[index - DIAMONDS_ARRAY_WIDTH - 1].kind
+        && diamond.kind === diamond[index + DIAMONDS_ARRAY_WIDTH - 1].kind 
+    ){
+      return true;
+    }
+
+    //ruch w lewo => czy jest na szczycie kolumny                                            
+      if(
+        index % DIAMONDS_ARRAY_WIDTH < DIAMONDS_ARRAY_WIDTH - 1
+        && Math.floor(index / DIAMONDS_ARRAY_WIDTH) < DIAMONDS_ARRAY_HEIGHT - 2
+        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH + 1].kind
+        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH * 2 + 1].kind
+      ){
+        return true;
+      }
+
+
+      return false;
+    })
+  }
+
 
   checkEndOfGame(){
     if(!this.gameState.getLeftMovement() && !this.gameState.getIsMoving() && !this.gameState.getIsSwapping()){
       const isPlayerWinner = this.gameState.isPlayerWinner();
+      // numer jest przekazywany ze stringa więc żeby nie było konkatenacji, to pykamy parsowanie do  number
+      const currentLevel = Number(this.gameState.level);
 
-      if(isPlayerWinner && gameLevels[this.gameState.level]){
-        console.log('kolejny lvl odblokowany')
-        //odblokowanie kolejnego levelu
+      if(isPlayerWinner && gameLevels[currentLevel]){
+        //odblokowanie kolejnego levelu, jeśli nie jest już dostępny, 
+        if(!userData.checkAvailabilityLevel(currentLevel + 1)){
+          userData.addNewLevel(currentLevel + 1);
+        }
       }
-      console.log('jeżeli gracz ma więcej punktów to aktualizacja high scores');
-      resultScreen.viewResultScreen(isPlayerWinner,this.gameState.getPlayerPoints(), this.gameState.level);
+      //przypisanie nowej wartości HighScores jeśli wynik jest większy niż to co zapisane w local storage
+      if(userData.getHighScores(currentLevel) < this.gameState.getPlayerPoints()){
+        userData.setHighScore(currentLevel, this.gameState.getPlayerPoints());
+      }
+      
+      resultScreen.viewResultScreen(isPlayerWinner,this.gameState.getPlayerPoints(), currentLevel);
     } else{
       //jeśli gra się nie zakończyła to rysuj se dalej
       this.animationFrame = window.requestAnimationFrame(() => this.animate());

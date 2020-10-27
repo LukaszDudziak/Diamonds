@@ -34,6 +34,8 @@ class MainMenu extends Common {
   }
   //implementacja przycisków
   showLevelScreen() {
+    //tworzymy buttony przy odpaleniu ich menu
+    levelSelect.createButtons();
     //zmiana widoczności obecnego elementu (przekazanego w super konstruktora)
     this.changeVisibilityScreen(this.element, HIDDEN_SCREEN);
     this.changeVisibilityScreen(levelSelect.element, VISIBLE_SCREEN);

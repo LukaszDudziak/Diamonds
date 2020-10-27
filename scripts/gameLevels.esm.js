@@ -10,7 +10,7 @@ export const gameLevels = [
   {
     level: 1,
     numberOfMovements: 1,
-    pointsToWin: 7000,
+    pointsToWin: 20,
     //tworzenie planszy, kolejno z pozycją X, Y, nazwą rzędu, kolumny i rodzaju klocka jaki jest w tym miejscu, pierwszy rząd jest z empty
     board:[
 			{x: 0 * DIAMOND_SIZE, y: -1 * DIAMOND_SIZE + GAME_BOARD_Y_OFFSET, row: 0, column: 0, kind: EMPTY_BLOCK,},
