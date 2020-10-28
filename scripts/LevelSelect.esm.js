@@ -52,15 +52,28 @@ class LevelSelect extends Common {
   }
 
   loadLevel(level) {
-    //ładowanie mediów poprzez utworzony obiekt, obrazu tła gry, sprajta z diamentami
-    media.diamondsSprite = loader.loadImage('assets/images/diamonds-transparent.png')
-    media.backgroundImage = loader.loadImage(
-      "assets/images/levelbackground.png"
-    );
-    //nasłuch na wydarzenie kończące ładowanie
-    window.addEventListener(DATALOADED_EVENT_NAME, () => {
+    if(media.backgroundImage && media.diamondsSprite && media.backgroundMusic && media.swapSound){
       game.playLevel(level);
-    });
+      return;
+    }
+    if(!media.diamondsSprite){
+      //ładowanie mediów poprzez utworzony obiekt, obrazu tła gry, sprajta z diamentami
+      media.diamondsSprite = loader.loadImage('assets/images/diamonds-transparent.png')
+    }
+
+    if(!media.backgroundImage){
+        media.backgroundImage = loader.loadImage("assets/images/levelbackground.png");
+    }
+
+    if(!media.swapSound){
+      media.swapSound = loader.loadSound("assets/sounds/stone_rock_or_wood_moved.mp3");
+    }
+
+    if(!media.backgroundMusic){
+      media.backgroundMusic = loader.loadSound("assets/sounds/music-background.mp3");
+    }
+    //nasłuch na wydarzenie kończące ładowanie
+    window.addEventListener(DATALOADED_EVENT_NAME, () => game.playLevel(level));
   }
 }
 

@@ -11,7 +11,7 @@ import { userData } from "./UserData.esm.js";
 
 
 //rozmiary tablicy
-const DIAMONDS_ARRAY_WIDTH = 8;
+export const DIAMONDS_ARRAY_WIDTH = 8;
 const DIAMONDS_ARRAY_HEIGHT = DIAMONDS_ARRAY_WIDTH + 1; //z ukrytą pierwszą linią 
 const LAST_ELEMENT_DIAMONDS_ARRAY = DIAMONDS_ARRAY_WIDTH * DIAMONDS_ARRAY_HEIGHT - 1;
 const SWAPPING_SPEED = 8;
@@ -31,7 +31,10 @@ class Game extends Common {
     this.gameState = new GameState(level, numberOfMovements, pointsToWin, board, media.diamondsSprite);
     //ustawienie widoczności elementu canvas
     this.changeVisibilityScreen(canvas.element, VISIBLE_SCREEN);
-//tworzenie obiektu diamentu
+    //odpalenie dzwieku
+    media.isInLevel = true;
+    media.playBackgroundMusic();
+    //tworzenie obiektu diamentu
     this.animate();
   }
 
@@ -45,13 +48,13 @@ class Game extends Common {
     this.findMatches();
     //zamiana płytek
     this.moveDiamonds();
-//ukrywanie diamentów
+    //ukrywanie diamentów
     this.hideAnimation();
     //liczenie punktów
     this.countScores();
     //reset flag isMoving i isSwapping
     this.revertSwap();
-//czyszczenie dopasowanych płytek
+    //czyszczenie dopasowanych płytek
     this.clearMatched();
     //rysuje background
     canvas.drawGameOnCanvas(this.gameState);
@@ -105,6 +108,8 @@ class Game extends Common {
       }
       //jeśli wszystko powyżej git, to zamieniamy
       this.swapDiamonds();
+
+      media.playSwapSound();
       //ustawienie na state, że jest obecnie swapowane oraz że musi być odjęty ruch gracza
       this.gameState.setIsSwapping(true);
       this.gameState.decreasePointsMovement(); 
@@ -293,8 +298,8 @@ class Game extends Common {
           index % DIAMONDS_ARRAY_WIDTH < DIAMONDS_ARRAY_WIDTH - 1
           && Math.floor( index / DIAMONDS_ARRAY_WIDTH) > 1
           && Math.floor( index / DIAMONDS_ARRAY_WIDTH) < DIAMONDS_ARRAY_HEIGHT - 1
-          && diamond.kind === diamond[index - DIAMONDS_ARRAY_WIDTH + 1].kind
-          && diamond.kind === diamond[index + DIAMONDS_ARRAY_WIDTH + 1].kind //do zgłoszenia na udemy!!! !!! !!!
+          && diamond.kind === diamonds[index - DIAMONDS_ARRAY_WIDTH + 1].kind
+          && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH + 1].kind //do zgłoszenia na udemy!!! !!! !!!
       ){
         return true;
       }
@@ -337,8 +342,8 @@ class Game extends Common {
         index % DIAMONDS_ARRAY_WIDTH
         && Math.floor( index / DIAMONDS_ARRAY_WIDTH) > 1
         && Math.floor( index / DIAMONDS_ARRAY_WIDTH) < DIAMONDS_ARRAY_HEIGHT - 1
-        && diamond.kind === diamond[index - DIAMONDS_ARRAY_WIDTH - 1].kind
-        && diamond.kind === diamond[index + DIAMONDS_ARRAY_WIDTH - 1].kind 
+        && diamond.kind === diamonds[index - DIAMONDS_ARRAY_WIDTH - 1].kind
+        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH - 1].kind 
     ){
       return true;
     }
@@ -347,20 +352,114 @@ class Game extends Common {
       if(
         index % DIAMONDS_ARRAY_WIDTH < DIAMONDS_ARRAY_WIDTH - 1
         && Math.floor(index / DIAMONDS_ARRAY_WIDTH) < DIAMONDS_ARRAY_HEIGHT - 2
-        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH + 1].kind
-        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH * 2 + 1].kind
+        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH - 1].kind
+        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH * 2 - 1].kind
+      ){
+        return true;  
+      }
+    ///ruch w lewo => czy jest na dole kolumny
+      if(
+        index % DIAMONDS_ARRAY_WIDTH
+        && Math.floor(index / DIAMONDS_ARRAY_WIDTH) > 2
+        && diamond.kind === diamonds[index - DIAMONDS_ARRAY_WIDTH - 1].kind
+        && diamond.kind === diamonds[index - DIAMONDS_ARRAY_WIDTH * 2 - 1].kind
       ){
         return true;
       }
 
+      //ruch w dół => czy jest w kolumnie
+      if(
+        Math.floor(index / DIAMONDS_ARRAY_WIDTH) < DIAMONDS_ARRAY_HEIGHT -3
+        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH * 2].kind
+        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH * 3].kind
+
+      )
+      {
+        return true;
+      }
+
+      //ruch w dół => w wiersz w środek
+      if(
+        index % DIAMONDS_ARRAY_WIDTH
+        && index % DIAMONDS_ARRAY_WIDTH < DIAMONDS_ARRAY_WIDTH - 1
+        && Math.floor(index / DIAMONDS_ARRAY_WIDTH) < DIAMONDS_ARRAY_HEIGHT -1
+        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH + 1].kind
+        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH - 1].kind
+      ){
+        return true;
+      }
+    //ruch w dół => w wiersz lewa krawędź
+    if(
+      index % DIAMONDS_ARRAY_WIDTH < DIAMONDS_ARRAY_WIDTH - 2
+      && Math.floor(index / DIAMONDS_ARRAY_WIDTH) < DIAMONDS_ARRAY_HEIGHT - 1
+      && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH + 1].kind
+        && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH + 2].kind
+    ){
+      return true;
+    }
+  //ruch w dół => w wiersz prawa krawędź
+  if(
+    index % DIAMONDS_ARRAY_WIDTH > 1
+    && Math.floor(index / DIAMONDS_ARRAY_WIDTH) < DIAMONDS_ARRAY_HEIGHT - 1
+    && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH - 1].kind
+      && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH - 2].kind
+  ){
+    return true;
+  }
+
+    //ruch w górę => czy jest w kolumnie
+    if(
+      Math.floor(index / DIAMONDS_ARRAY_WIDTH) > 3
+      && diamond.kind === diamonds[index - DIAMONDS_ARRAY_WIDTH * 2].kind
+      && diamond.kind === diamonds[index - DIAMONDS_ARRAY_WIDTH * 3].kind
+    )
+    {
+      return true;
+    }
+
+    //ruch w górę => w wiersz w środek
+    if(
+      index % DIAMONDS_ARRAY_WIDTH
+      && index % DIAMONDS_ARRAY_WIDTH < DIAMONDS_ARRAY_WIDTH - 1
+      && Math.floor(index / DIAMONDS_ARRAY_WIDTH) > 1
+      && diamond.kind === diamonds[index - DIAMONDS_ARRAY_WIDTH + 1].kind
+      && diamond.kind === diamonds[index - DIAMONDS_ARRAY_WIDTH - 1].kind
+    ){
+      return true;
+    }
+  //ruch w dół => w wiersz lewa krawędź
+  if(
+    index % DIAMONDS_ARRAY_WIDTH < DIAMONDS_ARRAY_WIDTH - 2
+    && Math.floor(index / DIAMONDS_ARRAY_WIDTH) > 1
+    && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH + 1].kind
+    && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH + 2].kind
+  ){
+    return true;
+  }
+//ruch w dół => w wiersz prawa krawędź
+    if(
+      index % DIAMONDS_ARRAY_WIDTH > 1
+      && Math.floor(index / DIAMONDS_ARRAY_WIDTH) > 1
+      && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH - 1].kind
+      && diamond.kind === diamonds[index + DIAMONDS_ARRAY_WIDTH - 2].kind
+    ){  
+    return true;
+    }
 
       return false;
-    })
+    });
+
+    	if(!this.isPossibleToMove){
+        this.gameState.mixDiamonds();
+      }
+
   }
 
 
   checkEndOfGame(){
     if(!this.gameState.getLeftMovement() && !this.gameState.getIsMoving() && !this.gameState.getIsSwapping()){
+      media.isInLevel = false;
+      media.stopBackgroundMusic();
       const isPlayerWinner = this.gameState.isPlayerWinner();
       // numer jest przekazywany ze stringa więc żeby nie było konkatenacji, to pykamy parsowanie do  number
       const currentLevel = Number(this.gameState.level);

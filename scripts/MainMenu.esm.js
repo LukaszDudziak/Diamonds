@@ -1,6 +1,7 @@
 import { Common, HIDDEN_SCREEN, VISIBLE_SCREEN } from "./Common.esm.js";
 import { levelSelect } from "./LevelSelect.esm.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./Canvas.esm.js";
+import { settings } from './Settings.esm.js';
 
 //stałe zawierające elementy DOM
 const START_SCREEN_ID = "js-start-screen";
@@ -41,8 +42,9 @@ class MainMenu extends Common {
     this.changeVisibilityScreen(levelSelect.element, VISIBLE_SCREEN);
   }
 
+  //ustawienia gry
   showSettingsScreen() {
-    console.log("Wybór opcji");
+    this.changeVisibilityScreen(settings.element,VISIBLE_SCREEN);
   }
 
   //metoda odpowiedzialna za skalowanie okna gry
