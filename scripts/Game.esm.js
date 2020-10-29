@@ -8,6 +8,7 @@ import { mouseController } from "./MouseController.esm.js";
 import { DIAMOND_SIZE, NUMBER_OF_DIAMONDS_TYPES } from "./Diamond.esm.js";
 import { resultScreen } from './ResultScreen.esm.js';
 import { userData } from "./UserData.esm.js";
+import { mainMenu } from "./MainMenu.esm.js";
 
 
 //rozmiary tablicy
@@ -31,6 +32,7 @@ class Game extends Common {
     this.gameState = new GameState(level, numberOfMovements, pointsToWin, board, media.diamondsSprite);
     //ustawienie widoczności elementu canvas
     this.changeVisibilityScreen(canvas.element, VISIBLE_SCREEN);
+    this.changeVisibilityScreen(mainMenu.miniSettingsLayerElement, VISIBLE_SCREEN)
     //odpalenie dzwieku
     media.isInLevel = true;
     media.playBackgroundMusic();
