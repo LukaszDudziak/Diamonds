@@ -1,7 +1,7 @@
 //klasa utworzona dla powtarzającego się kodu, który pozwoli na obsługę różnych elementów, będzie rozszerzać większość klas
 
 //stałe, które pomogą w togglowaniu klasy hidden, która pozwoli na ukrywanie i wyświetlanie ekranów
-export const HIDDEN_CLASS = 'hidden';
+export const HIDDEN_CLASS = "hidden";
 export const HIDDEN_SCREEN = false;
 export const VISIBLE_SCREEN = true;
 
@@ -27,7 +27,7 @@ export class Common {
   }
   //przełączanie miedzy oknami za pomocą stałych
   changeVisibilityScreen(element, mode) {
-    // console.log('click')
+    console.log(element);
     mode === VISIBLE_SCREEN
       ? element.classList.remove(HIDDEN_CLASS)
       : element.classList.add(HIDDEN_CLASS);
